@@ -1,6 +1,8 @@
 # Folders
 /results
 /data
+__pycache__/
+**/__pycache__/
 
 # Files
 .DS_Store
