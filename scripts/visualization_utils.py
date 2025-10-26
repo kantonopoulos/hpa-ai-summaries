@@ -1,3 +1,5 @@
+from plotnine import ggsave
+
 def flatten_values(val):
     """Recursively flatten lists/dicts to final values."""
     if isinstance(val, dict):
@@ -39,3 +41,7 @@ def get_group(field):
         return "Interactions"
     else:
         return "Other"
+    
+    
+def save_plot(plot, filename):
+    ggsave(plot, filename=filename, width=6, height=6, units="in", dpi=300)
