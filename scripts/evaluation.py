@@ -3,7 +3,9 @@ from collections import Counter
 from typing import Dict, Any, List, Tuple
 import pandas as pd
 import difflib
-import pandas as pd
+import requests
+import json
+import time
 
 # Utility functions
 def tokenize(text: str) -> List[str]:
@@ -405,3 +407,75 @@ def evaluate_summary(gjson: Dict[str,Any], summary: str) -> pd.DataFrame:
     rows.append({'gene_id':gene_id, 'metric':'word_count','value':wc})
     df = pd.DataFrame(rows)
     return df
+
+def evaluate_with_llm(gene_json, summary, max_retries=3):
+    """
+    Calls a local LLM API to evaluate a summary for a gene given its JSON data.
+
+    If the output format is invalid, retries the prompt up to `max_retries` times.
+
+    Returns:
+        dict: A dictionary containing the LLM evaluation results with 'score' and 'comment'.
+    """
+    prompt = f"""
+    You are a biomedical fact-checker.
+
+    Evaluate whether the SUMMARY accurately represents the GENE_JSON, either by faithfully reflecting the JSON data or by providing biologically correct information that integrates or comments on the fields in a meaningful way. 
+
+    Score meaning:
+    5 = Fully accurate, either perfectly reflects the JSON or provides biologically correct and insightful integration of fields.
+    4 = Mostly accurate, with minor uncertainties or omissions, but no significant errors.
+    3 = Some unclear or incomplete parts, with minor biological inaccuracies or missed connections.
+    2 = Clear errors, hallucinations, or biologically incorrect statements, but some relevant information is present.
+    1 = Mostly incorrect, with significant errors or hallucinations and little to no relevant information.
+
+    Use the full range of scores (1 to 5) based on the criteria above.
+
+    Return only:
+    <numeric score> <short comment>
+
+    Example:
+    5 Accurate and faithful summary
+
+    GENE_JSON:
+    {json.dumps(gene_json, ensure_ascii=False)}
+
+    SUMMARY:
+    \"\"\"{summary}\"\"\"
+    """
+    for attempt in range(max_retries):
+        try:
+            response = requests.post(
+                "http://localhost:11434/api/generate",
+                json={"model": "gpt-oss:20b", "prompt": prompt},
+                stream=True
+            )
+            result = ""
+            for line in response.iter_lines():
+                if line:
+                    data = json.loads(line.decode())
+                    if "response" in data:
+                        result += data["response"]
+
+            print(f"LLM response: {result}")
+
+            # Clean the result to remove formatting like **, *, :, etc.
+            cleaned_result = re.sub(r"[*_:]+", "", result.strip())
+
+            # Parse the result into score and comment
+            parts = cleaned_result.split(maxsplit=1)
+            score = int(re.sub(r"[^\d]", "", parts[0])) if parts and parts[0][0].isdigit() else None
+            comment = parts[1] if len(parts) > 1 else ""
+
+            # Validate the score
+            if score not in range(1, 6):
+                raise ValueError(f"Invalid score: {score}")
+
+            return {"score": score, "comment": comment}
+
+        except (ValueError, json.JSONDecodeError) as e:
+            print(f"Attempt {attempt + 1}/{max_retries} failed: {e}")
+            time.sleep(1)  # Optional: Add a delay between retries
+
+    # Return a fallback response if all retries fail
+    return {"score": None, "comment": "Failed to get valid response after retries."}
