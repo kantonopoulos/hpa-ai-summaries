@@ -18,22 +18,51 @@ Contains Python scripts and notebooks for data extraction, summarization, evalua
 
 ## How to Use
 
-### **Step 1: Install Dependencies**
+### **Step 1: Set Up Ollama**
+This project uses a locally deployable large language model (LLM) powered by Ollama. Follow these steps:
+1. Download and install Ollama from their [official website](https://ollama.ai/).
+2. Pull the required model by running:
+   ```bash
+   ollama pull gpt-oss:20b
+   ```
+   This step is required only once to download the model. It might take 2-4 hours.
+3. Start the Ollama server before running the app or pipeline:
+   ```bash
+   ollama serve
+   ```
+   Keep the server running in the background.
+
+### **Step 2: Install Dependencies**
 Ensure you have Python installed along with the required libraries. Install dependencies using:
 ```bash
 pip install -r requirements.txt
 ```
 
-### **Step 2: Run the Pipeline**
+### **Step 3: Run the Pipeline**
 The pipeline is implemented in `pipeline.ipynb`. Open the notebook in Jupyter or VS Code and execute the cells sequentially to:
 1. Extract gene data from HPA.
 2. Generate summaries using baseline and improved models.
 3. Evaluate summaries using automated metrics and LLM-based evaluations.
 4. Visualize results.
 
-### **Step 3: Explore Results**
+### **Step 4: Explore Results**
 - Summaries are saved in the data folder (e.g., `gene_summaries_baseline.json`, `gene_summaries_refined.json`).
 - Evaluation results and plots are generated for comparison between models.
+
+---
+
+## Alternative Step 3/4: Run the Shiny App
+
+### **Step 3: Run the App**
+To launch the Shiny app for gene summarization:
+```bash
+python shiny-app/app.py
+```
+The app provides an interactive interface for selecting genes, generating summaries, and visualizing evaluation results. It might take 30s-1min to create and evaluate each summary.
+
+### **Step 4: Explore Results**
+- Refined summaries and evaluation results are displayed directly in the app.
+- Plots visualize the evaluation metrics for better insights.
 
 ---
 
