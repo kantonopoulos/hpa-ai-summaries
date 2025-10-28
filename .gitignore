@@ -2,8 +2,8 @@
 /results
 __pycache__/
 **/__pycache__/
+/Deliverables
 
 # Files
 .DS_Store
-DDLS25_kantonopoulos_projectproposal.pdf
 *.json
