@@ -6,31 +6,27 @@ from scripts.evaluation import evaluate_summary, evaluate_with_llm
 from shiny import reactive
 from plotnine import ggplot, aes, geom_bar
 
-# Initialize the plot variable in the global scope
 plot = None
 
-# Define the UI
+# UI
 app_ui = ui.page_fluid(
     ui.input_select("gene_id", "Select Gene ID:", []),
     ui.input_action_button("run", "Run"),
-    ui.output_ui("output")  # Removed duplicate output_plot reference
+    ui.output_ui("output")
 )
 
-# Define the server logic
+# Server
 def server(input: Inputs, output: Outputs, session: Session):
-    global plot  # Declare the global variable inside the server function
+    global plot
 
-    # Load gene options from the TSV file
     hpa_df = pd.read_csv("data/hpa_genes.tsv", sep="\t")
     hpa_genes = hpa_df.iloc[:, 0].tolist()
-
-    # Update the select input choices dynamically
     session.on_flushed(lambda: ui.update_select("gene_id", choices=hpa_genes))
 
     @render.ui
     @reactive.event(input.run)
     def output():
-        global plot  # Use global to ensure the plot is accessible in `evaluation_plot_output`
+        global plot
         gene_id = input.gene_id()
         extracted_data = extract_multiple_genes([gene_id])
         gene_data = extracted_data.get(gene_id, {})
@@ -40,12 +36,8 @@ def server(input: Inputs, output: Outputs, session: Session):
 
         concise_summary = concise_gene_summary(gene_data)
         refined_summary = refined_gene_summary(concise_summary, gene_data)
-
-        # Evaluate the summary
         evaluation_results = evaluate_summary(gene_data, refined_summary)
         llm_evaluation = evaluate_with_llm(gene_data, refined_summary)
-
-        # Prepare the evaluation plot
         evaluation_df = pd.DataFrame(evaluation_results)
         plot = (
             ggplot(evaluation_df, aes(x="metric", y="value")) +
@@ -66,5 +58,4 @@ def server(input: Inputs, output: Outputs, session: Session):
         global plot
         return plot
 
-# Create the app
 app = App(app_ui, server)
