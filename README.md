@@ -7,12 +7,17 @@ Large-scale omics resources, such as the Human Protein Atlas (HPA), provide exte
 
 ## Project Structure
 
+### /scripts
 Contains Python scripts and notebooks for data extraction, summarization, evaluation, and visualization:
 - **`extract_data.py`**: Extracts gene data from HPA and organizes it into structured JSON format.
 - **`llm_models.py`**: Implements baseline and improved summarization models using prompt engineering.
 - **`evaluation.py`**: Evaluates summaries using automated metrics and LLM-based evaluations.
 - **`visualization_utils.py`**: Contains functions for generating plots and visualizations of evaluation results.
 - **`pipeline.ipynb`**: Main pipeline notebook that integrates data extraction, summarization, evaluation, and visualization.
+
+### /shiny-app
+Contains the Shiny app for interactive gene summarization and evaluation:
+- **`app.py`**: Main application file for the Shiny app, providing an interactive interface for gene selection, summary generation, and evaluation visualization.
 
 ---
 
