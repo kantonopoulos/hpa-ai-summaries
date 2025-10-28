@@ -1,9 +1,9 @@
 # Folders
 /results
-/data
 __pycache__/
 **/__pycache__/
 
 # Files
 .DS_Store
 DDLS25_kantonopoulos_projectproposal.pdf
+*.json
